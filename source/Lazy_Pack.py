@@ -91,12 +91,13 @@ def generate_config():
         f.write('[Graphics]\n')
         f.write('ResolutionWidth = {}\n'.format(resolution.split('x')[0]))
         f.write('ResolutionHeight = {}\n'.format(resolution.split('x')[1]))
+        f.write('ResolutionShadows = -1')
 
     framerate_ini_path = os.path.join(dfps_folder, 'framerate.ini')
     with open(framerate_ini_path, 'w') as f:
         f.write('[dFPS]\n')
         f.write('MaxFramerate = {}\n'.format(framerate))
-        f.write('EnableCameraQualityImprovement = false\n')
+        f.write('EnableCameraQualityImprovement = true\n')
 
     copy_blackscreen_fix(romfs_folder)
 
