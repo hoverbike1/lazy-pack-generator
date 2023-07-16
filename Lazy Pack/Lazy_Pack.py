@@ -3,7 +3,7 @@ import shutil
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
-import sys
+import webbrowser
 
 def get_yuzu_folder_from_appdata():
     roaming_folder_path = Path(os.getenv('APPDATA'))
@@ -30,22 +30,22 @@ def copy_blackscreen_fix(romfs_folder):
     blackscreen_fix_option = blackscreen_var.get()
 
     if blackscreen_fix_option == 'Add Black-screen fix (Nintendo UI)':
-        blackscreen_fix_folder = os.path.join(script_directory, 'data', 'blackscreenfix', 'UI')
-        shutil.copytree(blackscreen_fix_folder, os.path.join(romfs_folder, 'UI'))
+        blackscreen_fix_folder = script_directory / 'data' / 'blackscreenfix' / 'UI'
+        shutil.copytree(blackscreen_fix_folder, romfs_folder / 'UI')
     elif blackscreen_fix_option == 'Add Black-screen fix (Playstation UI)':
-        playstation_fix_folder = os.path.join(script_directory, 'data', 'Playstation UI Mod v12.2 - Normal - White', 'romfs', 'UI')
-        shutil.copytree(playstation_fix_folder, os.path.join(romfs_folder, 'UI'))
-        playstation_font_folder = os.path.join(script_directory, 'data', 'Playstation UI Mod v12.2 - Normal - White', 'romfs', 'Font')
-        shutil.copytree(playstation_font_folder, os.path.join(romfs_folder, 'Font'))
+        playstation_fix_folder = script_directory / 'data' / 'Playstation UI Mod v12.2 - Normal - White' / 'romfs' / 'UI'
+        shutil.copytree(playstation_fix_folder, romfs_folder / 'UI')
+        playstation_font_folder = script_directory / 'data' / 'Playstation UI Mod v12.2 - Normal - White' / 'romfs' / 'Font'
+        shutil.copytree(playstation_font_folder, romfs_folder / 'Font')
     elif blackscreen_fix_option == 'Add Black-screen fix (Xbox UI)':
-        xbox_fix_folder = os.path.join(script_directory, 'data', 'Xbox UI Mod v9 - Normal - White', 'romfs', 'UI')
-        shutil.copytree(xbox_fix_folder, os.path.join(romfs_folder, 'UI'))
-        xbox_font_folder = os.path.join(script_directory, 'data', 'Xbox UI Mod v9 - Normal - White', 'romfs', 'Font')
-        shutil.copytree(xbox_font_folder, os.path.join(romfs_folder, 'Font'))
+        xbox_fix_folder = script_directory / 'data' / 'Xbox UI Mod v9 - Normal - White' / 'romfs' / 'UI'
+        shutil.copytree(xbox_fix_folder, romfs_folder / 'UI')
+        xbox_font_folder = script_directory / 'data' / 'Xbox UI Mod v9 - Normal - White' / 'romfs' / 'Font'
+        shutil.copytree(xbox_font_folder, romfs_folder / 'Font')
     elif blackscreen_fix_option == 'Remove Black-screen fix (UI Compatible)':
-        romfs_ui_folder = os.path.join(romfs_folder, 'UI')
+        romfs_ui_folder = romfs_folder / 'UI'
         shutil.rmtree(romfs_ui_folder, ignore_errors=True)
-        romfs_font_folder = os.path.join(romfs_folder, 'Font')
+        romfs_font_folder = romfs_folder / 'Font'
         shutil.rmtree(romfs_font_folder, ignore_errors=True)
 
 def generate_config():
@@ -69,12 +69,10 @@ def generate_config():
             yuzu_folder_label.config(fg="red")
             return
 
-    script_directory = Path(__file__).resolve().parent
+    source_folder = script_directory / 'data' / 'source'
+    result_folder = script_directory / 'result'
 
-    source_folder = os.path.join(script_directory, 'data', 'source')
-    result_folder = os.path.join(os.getcwd(), 'result')
-
-    if os.path.exists(result_folder):
+    if result_folder.exists():
         confirm = messagebox.askyesno("Confirmation", "The 'result' folder already exists. Do you want to delete it and continue?")
         if confirm:
             shutil.rmtree(result_folder)
@@ -83,34 +81,34 @@ def generate_config():
 
     shutil.copytree(source_folder, result_folder)
 
-    romfs_folder = os.path.join(result_folder, 'romfs')
-    dfps_folder = os.path.join(romfs_folder, 'dfps')
+    romfs_folder = result_folder / 'romfs'
+    dfps_folder = romfs_folder / 'dfps'
     os.makedirs(dfps_folder, exist_ok=True)
 
-    resolution_ini_path = os.path.join(dfps_folder, 'resolution.ini')
+    resolution_ini_path = dfps_folder / 'resolution.ini'
     with open(resolution_ini_path, 'w') as f:
         f.write('[Graphics]\n')
         f.write('ResolutionWidth = {}\n'.format(resolution.split('x')[0]))
         f.write('ResolutionHeight = {}\n'.format(resolution.split('x')[1]))
         f.write('ResolutionShadows = -1')
 
-    framerate_ini_path = os.path.join(dfps_folder, 'framerate.ini')
+    framerate_ini_path = dfps_folder / 'framerate.ini'
     with open(framerate_ini_path, 'w') as f:
         f.write('[dFPS]\n')
         f.write('MaxFramerate = {}\n'.format(framerate))
-        f.write('EnableCameraQualityImprovement = true\n')
+        f.write('EnableCameraQualityImprovement = false\n')
 
     copy_blackscreen_fix(romfs_folder)
 
     config_folder_paths = [
-        os.path.join(yuzu_folder_path_value, 'config', 'custom'),
-        os.path.join(yuzu_folder_path_value, 'user', 'config', 'custom')
+        yuzu_folder_path_value / 'config' / 'custom',
+        yuzu_folder_path_value / 'user' / 'config' / 'custom'
     ]
 
     for config_folder_path in config_folder_paths:
-        ini_file_path = os.path.join(config_folder_path, '0100F2C0115B6000.ini')
+        ini_file_path = config_folder_path / '0100F2C0115B6000.ini'
 
-        if os.path.exists(ini_file_path):
+        if ini_file_path.exists():
             with open(ini_file_path, 'r') as f:
                 lines = f.readlines()
 
@@ -131,7 +129,7 @@ def generate_config():
                         f.write(line)
 
     folder_name = f"Custom Lazy Pack - {resolution} - {framerate} FPS - {blackscreen_fix}"
-    lazy_pack_folder = os.path.join(yuzu_folder_path_value, 'load', '0100F2C0115B6000', folder_name)
+    lazy_pack_folder = yuzu_folder_path_value / 'load' / '0100F2C0115B6000' / folder_name
     shutil.rmtree(lazy_pack_folder, ignore_errors=True)
     shutil.copytree(result_folder, lazy_pack_folder)
 
@@ -141,9 +139,12 @@ def generate_config():
     messagebox.showinfo("Success", "Lazy Pack generated successfully.")
     yuzu_folder_label.config(fg="green")
 
+def open_github_project():
+    webbrowser.open("https://github.com/HolographicWings/TOTK-Mods-collection")
+
 # Create the main window
 window = tk.Tk()
-window.title("Lazy Pack Generator")
+window.title("Lazy Pack Generator by TOTK-Mods-Collection crew")
 window.geometry("480x480")
 window.resizable(False, False)
 
@@ -151,7 +152,7 @@ window.resizable(False, False)
 window['padx'] = 10
 window['pady'] = 10
 
-# Determine the script directory
+ # Determine the script directory
 script_directory = Path(__file__).resolve().parent
 
 # Set the background image path
@@ -207,7 +208,12 @@ if appdata_path:
 
 # Create the 'Generate' button
 generate_button = tk.Button(window, text="Generate!", command=generate_config)
-generate_button.grid(row=4, column=0, columnspan=3, padx=5, pady=10)
+generate_button.grid(row=5, column=0, columnspan=3, padx=5, pady=10)
+
+# Create the GitHub link label
+github_link_label = tk.Button(window, text="Visit our website!", fg="blue", cursor="hand2")
+github_link_label.grid(row=6, column=2, padx=10, pady=215, sticky=tk.E)
+github_link_label.bind("<Button-1>", lambda e: open_github_project())
 
 # Hide the command line window
 window.iconify()
@@ -217,4 +223,4 @@ window.deiconify()
 # Start the main event loop
 window.mainloop()
 
-# Compile using "pyinstaller --onefile --add-data "data;data" lazy_pack.py"
+# Compile using "pyinstaller --onefile --noconsole --add-data "data;data" lazy_pack.py"
