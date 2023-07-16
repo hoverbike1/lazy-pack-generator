@@ -8,7 +8,7 @@ a = Analysis(
     ['lazy_pack.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('data', 'data')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

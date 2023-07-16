@@ -6,7 +6,8 @@ from pathlib import Path
 import sys
 
 def get_yuzu_folder_from_appdata():
-    yuzu_folder_path = Path(os.getenv('APPDATA'))
+    roaming_folder_path = Path(os.getenv('APPDATA'))
+    yuzu_folder_path = roaming_folder_path / 'yuzu'
     if yuzu_folder_path.exists():
         return str(yuzu_folder_path)
     return None
@@ -203,7 +204,6 @@ if appdata_path:
     yuzu_folder_entry = tk.Entry(window, textvariable=yuzu_folder_path_value, width=30)
     yuzu_folder_entry.grid(row=3, column=1, padx=5, pady=5, sticky=tk.W)
     yuzu_folder_button.config(fg="green")
-    yuzu_folder_entry.insert(0, appdata_path)  # Insert the path in the entry widget
 
 # Create the 'Generate' button
 generate_button = tk.Button(window, text="Generate!", command=generate_config)
