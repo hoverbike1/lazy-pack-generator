@@ -165,7 +165,7 @@ background_label = tk.Label(window, image=background_image)
 background_label.place(relwidth=1, relheight=1)
 
 # Create the dropdown menus
-resolutions = ['960x540 (qHD)', '1280x720 (HD)', '1366x768 (HD)', '1600x900 (HD+)', '1920x1080 (FHD)', '2560x1440 (QHD)', '3840x2160 (4K)', '5120x2880 (QQHD)', '5760x3240(3xFHD)', '7680x4320 (8K)']
+resolutions = ['960x540 (qHD)', '1280x720 (HD)', '1366x768 (HD)', '1600x900 (HD+)', '1920x1080 (FHD)', '2560x1440 (QHD)', '3840x2160 (4K)', '5120x2880 (QQHD)', '5760x3240 (3xFHD)', '7680x4320 (8K)']
 framerates = ['20 FPS', '30 FPS', '35 FPS', '36 FPS', '40 FPS', '45 FPS', '60 FPS', '72 FPS', '75 FPS', '80 FPS', '90 FPS', '120 FPS']
 blackscreen_options = ['Add Black-screen fix (Nintendo UI)', 'Add Black-screen fix (Playstation UI)', 'Add Black-screen fix (Xbox UI)', 'Remove Black-screen fix (UI Compatible)']
 
