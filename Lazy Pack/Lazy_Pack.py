@@ -140,6 +140,9 @@ def generate_config():
     messagebox.showinfo("Success", "Lazy Pack generated successfully.")
     yuzu_folder_label.config(fg="green")
 
+def open_github_project():
+    webbrowser.open("https://github.com/HolographicWings/TOTK-Mods-collection")
+
 # Create the main window
 window = tk.Tk()
 window.title("Lazy Pack Generator by TOTK-Mods-Collection crew")
