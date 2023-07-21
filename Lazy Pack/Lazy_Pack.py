@@ -5,6 +5,10 @@ from tkinter import filedialog, messagebox
 from pathlib import Path
 import sys
 import webbrowser
+#import psutil
+#import gpuinfo
+#import pyglet
+#import wmi
 
 def get_yuzu_folder_from_appdata():
     roaming_folder_path = Path(os.getenv('APPDATA'))
@@ -21,11 +25,15 @@ def open_folder_dialog():
         yuzu_folder_entry.delete(0, tk.END)
         yuzu_folder_entry.insert(0, folder_path)  # Insert the path in the entry widget
         yuzu_folder_button.config(fg="green")
+        update_folder_state_label()
     else:
         yuzu_folder_path.set("")
         yuzu_folder_label.config(fg="red")
         yuzu_folder_entry.delete(0, tk.END)
         yuzu_folder_button.config(fg="red")
+        update_folder_state_label()
+
+
 
 def copy_blackscreen_fix(romfs_folder):
     blackscreen_fix_option = blackscreen_var.get()
@@ -48,6 +56,59 @@ def copy_blackscreen_fix(romfs_folder):
         shutil.rmtree(romfs_ui_folder, ignore_errors=True)
         romfs_font_folder = os.path.join(romfs_folder, 'Font')
         shutil.rmtree(romfs_font_folder, ignore_errors=True)
+
+
+
+#def get_gpu_info():
+#    c = wmi.WMI(namespace="root\\CIMV2")
+#
+#    gpu_info = []
+#
+#    for item in c.Win32_VideoController():
+#        gpu_info.append({
+#            'Name': item.Name,
+#            'AdapterRAM': item.AdapterRAM,
+#            'AdapterCompatibility': item.AdapterCompatibility
+#        })
+
+#    return gpu_info
+
+#def bytes_to_gb(bytes_value):
+#    bytes_value = int(bytes_value)
+#    if bytes_value < 0:
+#        bytes_value *= -1
+#    if isinstance(bytes_value, str):
+#       bytes_value = float(bytes_value)
+#    return round(bytes_value / 1024**3 if bytes_value >= 1024**3 else bytes_value / 102400, 2)
+
+# Get GPU information
+#gpu_info = get_gpu_info()
+
+# Print GPU information
+#for gpu in gpu_info:
+#    print("Name:", gpu['Name'])
+#    print("Adapter RAM:", bytes_to_gb(gpu['AdapterRAM']), "GB")
+#    print("Adapter Compatibility:", gpu['AdapterCompatibility'])
+#    print()
+
+# Get system RAM capacity
+#system_ram_capacity = wmi.WMI().Win32_ComputerSystem()[0].TotalPhysicalMemory
+#print("RAM Capacity:", bytes_to_gb(system_ram_capacity), "GB")
+
+
+# Mapping of resolutions to shadow resolutions
+resolution_shadow_mapping = {
+    '960x540': 512,
+    '1280x720': 512,
+    '1366x768': 512,
+    '1600x900': 1024,
+    '1920x1080': 1024,
+    '2560x1440': 2048,
+    '3840x2160': 4096,
+    '5120x2880': 4096,
+    '5760x3240': 4096,
+    '7680x4320': 8192
+}
 
 def generate_config():
     resolution = resolution_var.get().split(' (')[0]
@@ -91,7 +152,16 @@ def generate_config():
         f.write('[Graphics]\n')
         f.write('ResolutionWidth = {}\n'.format(resolution.split('x')[0]))
         f.write('ResolutionHeight = {}\n'.format(resolution.split('x')[1]))
-        f.write('ResolutionShadows = -1')
+
+        # Check if the chosen resolution is in the mapping, and set the appropriate shadow resolution
+        shadow_resolution = resolution_shadow_mapping.get(resolution, -1)
+        if shadow_resolution != -1:
+            f.write('ResolutionShadows = {}\n'.format(shadow_resolution))
+        else:
+            f.write('ResolutionShadows = -1\n')
+
+
+    
 
     framerate_ini_path = os.path.join(dfps_folder, 'framerate.ini')
     with open(framerate_ini_path, 'w') as f:
@@ -103,8 +173,114 @@ def generate_config():
 
     config_folder_paths = [
         os.path.join(yuzu_folder_path_value, 'config', 'custom'),
-        os.path.join(yuzu_folder_path_value, 'user', 'config', 'custom')
     ]
+
+    # Create the base 0100F2C0115B6000.ini content with the specified settings
+    config_content = f"""[Core]
+use_multi_core\\use_global=true
+use_unsafe_extended_memory_layout\\use_global=true
+
+[Cpu]
+cpu_accuracy_first_time\\default=false
+cpu_accuracy_first_time=false
+cpu_accuracy\\use_global=false
+cpuopt_unsafe_unfuse_fma\\use_global=true
+cpuopt_unsafe_reduce_fp_error\\use_global=true
+cpuopt_unsafe_ignore_standard_fpcr\\use_global=true
+cpuopt_unsafe_inaccurate_nan\\use_global=true
+cpuopt_unsafe_fastmem_check\\use_global=true
+cpuopt_unsafe_ignore_global_monitor\\use_global=true
+cpu_accuracy\\default=true
+cpu_accuracy=0
+
+[Renderer]
+backend\\use_global=false
+async_presentation\\use_global=false
+force_max_clock\\use_global=true
+vulkan_device\\use_global=false
+fullscreen_mode\\use_global=true
+aspect_ratio\\use_global=true
+resolution_setup\\use_global=false
+scaling_filter\\use_global=false
+fsr_sharpening_slider\\use_global=false
+anti_aliasing\\use_global=false
+max_anisotropy\\use_global=false
+speed_limit\\use_global=false
+use_disk_shader_cache\\use_global=false
+gpu_accuracy\\use_global=false
+use_asynchronous_gpu_emulation\\use_global=false
+nvdec_emulation\\use_global=true
+accelerate_astc\\use_global=false
+async_astc\\use_global=false
+astc_recompression\\use_global=true
+use_reactive_flushing\\use_global=false
+shader_backend\\use_global=true
+use_asynchronous_shaders\\use_global=false
+use_fast_gpu_time\\use_global=false
+use_vulkan_driver_pipeline_cache\\use_global=false
+enable_compute_pipelines\\use_global=true
+use_video_framerate\\use_global=false
+barrier_feedback_loops\\use_global=false
+bg_red\\use_global=true
+bg_green\\use_global=true
+bg_blue\\use_global=true
+backend\\default=true
+backend=1
+async_presentation\\default=true
+async_presentation=false
+vulkan_device\\default=true
+vulkan_device=0
+resolution_setup\\default=true
+resolution_setup=2
+scaling_filter\\default=true
+scaling_filter=1
+fsr_sharpening_slider\\default=false
+fsr_sharpening_slider=200
+anti_aliasing\\default=false
+anti_aliasing=1
+max_anisotropy\\default=false
+max_anisotropy=5
+speed_limit\\default=true
+speed_limit=100
+use_disk_shader_cache\\default=true
+use_disk_shader_cache=true
+gpu_accuracy\\default=false
+gpu_accuracy=0
+use_asynchronous_gpu_emulation\\default=true
+use_asynchronous_gpu_emulation=true
+accelerate_astc\\default=true
+accelerate_astc=true
+async_astc\\default=true
+async_astc=false
+use_reactive_flushing\\default=false
+use_reactive_flushing=false
+use_asynchronous_shaders\\default=true
+use_asynchronous_shaders=false
+use_fast_gpu_time\\default=true
+use_fast_gpu_time=true
+use_vulkan_driver_pipeline_cache\\default=true
+use_vulkan_driver_pipeline_cache=true
+use_video_framerate\\default=false
+use_video_framerate=true
+barrier_feedback_loops\\default=true
+barrier_feedback_loops=true
+
+[Audio]
+volume\\use_global=true
+
+[System]
+language_index\\use_global=true
+region_index\\use_global=true
+time_zone_index\\use_global=true
+rng_seed_enabled\\use_global=true
+rng_seed\\use_global=true
+sound_index\\use_global=true
+"""
+
+    # Save the additional config content to 0100F2C0115B6000.ini
+    config_file_path = os.path.join(yuzu_folder_path_value, 'config', 'custom', '0100F2C0115B6000.ini')
+    with open(config_file_path, 'w') as f:
+        f.write(config_content)
 
     for config_folder_path in config_folder_paths:
         ini_file_path = os.path.join(config_folder_path, '0100F2C0115B6000.ini')
@@ -112,6 +288,9 @@ def generate_config():
         if os.path.exists(ini_file_path):
             with open(ini_file_path, 'r') as f:
                 lines = f.readlines()
+
+
+
 
             with open(ini_file_path, 'w') as f:
                 for line in lines:
@@ -129,10 +308,14 @@ def generate_config():
                     else:
                         f.write(line)
 
+
+
     folder_name = f"Custom Lazy Pack - {resolution} - {framerate} FPS - {blackscreen_fix}"
     lazy_pack_folder = os.path.join(yuzu_folder_path_value, 'load', '0100F2C0115B6000', folder_name)
     shutil.rmtree(lazy_pack_folder, ignore_errors=True)
     shutil.copytree(result_folder, lazy_pack_folder)
+
+    update_folder_state_label()
 
     # Clean up the result folder
     shutil.rmtree(result_folder)
@@ -201,19 +384,36 @@ yuzu_folder_button.grid(row=3, column=2, padx=5, pady=5, sticky=tk.W)
 appdata_path = get_yuzu_folder_from_appdata()
 if appdata_path:
     yuzu_folder_path.set(appdata_path)
-    yuzu_folder_label.config(fg="green")
+    yuzu_folder_label.config(fg="orange")
     yuzu_folder_path_value = tk.StringVar(window, value=appdata_path)  # Define yuzu_folder_path_value
     yuzu_folder_entry = tk.Entry(window, textvariable=yuzu_folder_path_value, width=30)
     yuzu_folder_entry.grid(row=3, column=1, padx=5, pady=5, sticky=tk.W)
-    yuzu_folder_button.config(fg="green")
+    yuzu_folder_button.config(fg="orange")
 
 # Create the 'Generate' button
 generate_button = tk.Button(window, text="Generate!", command=generate_config)
 generate_button.grid(row=5, column=0, columnspan=3, padx=5, pady=10)
 
+def update_folder_state_label():
+    folder_path = yuzu_folder_path.get()
+
+    if not folder_path:
+        folder_state_label.config(text="Warning: No folder selected!", fg="red")
+        yuzu_folder_label.config(fg="red")
+        yuzu_folder_button.config(fg="red")
+
+    else:
+        folder_state_label.config(text="Folder selected by user!", fg="green")
+        yuzu_folder_label.config(fg="green")
+        yuzu_folder_button.config(fg="green")
+
+# Add the folder state label
+folder_state_label = tk.Label(window, text="Warning: Folder path autofilled! \n Portable Yuzu / Linux users \n please check the directory selected \n and adjust it by clicking 'Select Folder' above", fg="orange")
+folder_state_label.grid(row=6, column=0, columnspan=3, padx=5, pady=5)
+
 # Create the GitHub link label
 github_link_label = tk.Button(window, text="Visit our website!", fg="blue", cursor="hand2")
-github_link_label.grid(row=6, column=2, padx=10, pady=215, sticky=tk.E)
+github_link_label.grid(row=0, column=2, padx=10, pady=10, sticky=tk.E)
 github_link_label.bind("<Button-1>", lambda e: open_github_project())
 
 # Hide the command line window
