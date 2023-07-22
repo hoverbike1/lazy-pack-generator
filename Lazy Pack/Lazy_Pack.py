@@ -1,7 +1,7 @@
 import os
 import shutil
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
 from pathlib import Path
 import sys
 import webbrowser
@@ -97,6 +97,7 @@ def copy_blackscreen_fix(romfs_folder):
 
 
 # Mapping of resolutions to shadow resolutions
+
 resolution_shadow_mapping = {
     '960x540': 512,
     '1280x720': 512,
@@ -321,7 +322,6 @@ sound_index\\use_global=true
     shutil.rmtree(result_folder)
 
     messagebox.showinfo("Success", "Lazy Pack generated successfully.")
-    yuzu_folder_label.config(fg="green")
 
 def open_github_project():
     webbrowser.open("https://github.com/HolographicWings/TOTK-Mods-collection")
@@ -340,7 +340,7 @@ window['pady'] = 10
 script_directory = Path(__file__).resolve().parent
 
 # Set the background image path
-background_image_path = script_directory / 'data' / 'background' / 'background.png'
+background_image_path = script_directory / 'data' / 'background' / 'background.gif'
 
 # Create the background label
 background_image = tk.PhotoImage(file=background_image_path)
@@ -352,47 +352,62 @@ resolutions = ['960x540 (qHD)', '1280x720 (HD)', '1366x768 (HD)', '1600x900 (HD+
 framerates = ['20 FPS', '30 FPS', '35 FPS', '36 FPS', '40 FPS', '45 FPS', '60 FPS', '72 FPS', '75 FPS', '80 FPS', '90 FPS', '120 FPS']
 blackscreen_options = ['Add Black-screen fix (Nintendo UI)', 'Add Black-screen fix (Playstation UI)', 'Add Black-screen fix (Xbox UI)', 'Remove Black-screen fix (UI Compatible)']
 
+# Create custom style for the OptionMenu and TCombobox
+s = ttk.Style()
+s.theme_create("custom_style", parent="alt", settings={
+    "TCombobox": {
+        "configure": {"selectbackground": "#4D4D4E", "fieldbackground": "#4D4D4E", "background": "#4D4D4E", "foreground": "white", "arrowcolor": "white"},
+    },
+    "TCombobox.Button": {
+        "configure": {"background": "#4D4D4E", "foreground": "white", "bordercolor": "#4D4D4E", "lightcolor": "#4D4D4E", "darkcolor": "#4D4D4E"},
+    },
+    "TCombobox.Label": {
+        "configure": {"background": "#4D4D4E", "foreground": "white"},
+    },
+})
+s.theme_use("custom_style")
+
 resolution_var = tk.StringVar(window)
 resolution_var.set(resolutions[0])
-resolution_label = tk.Label(window, text="Resolution:")
+resolution_label = tk.Label(window, text="Resolution:", fg="white", bg="#4D4D4E")
 resolution_label.grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
-resolution_dropdown = tk.OptionMenu(window, resolution_var, *resolutions)
+resolution_dropdown = ttk.Combobox(window, textvariable=resolution_var, values=resolutions, state="readonly", width=36)
 resolution_dropdown.grid(row=0, column=1, padx=5, pady=5, sticky=tk.W)
 
 framerate_var = tk.StringVar(window)
 framerate_var.set(framerates[0])
-framerate_label = tk.Label(window, text="Framerate:")
+framerate_label = tk.Label(window, text="Framerate:", fg="white", bg="#4D4D4E")
 framerate_label.grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
-framerate_dropdown = tk.OptionMenu(window, framerate_var, *framerates)
+framerate_dropdown = ttk.Combobox(window, textvariable=framerate_var, values=framerates, state="readonly", width=36)
 framerate_dropdown.grid(row=1, column=1, padx=5, pady=5, sticky=tk.W)
 
 blackscreen_var = tk.StringVar(window)
 blackscreen_var.set(blackscreen_options[0])
-blackscreen_label = tk.Label(window, text="Blackscreen Fix:")
+blackscreen_label = tk.Label(window, text="Blackscreen Fix:", fg="white", bg="#4D4D4E")
 blackscreen_label.grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
-blackscreen_dropdown = tk.OptionMenu(window, blackscreen_var, *blackscreen_options)
+blackscreen_dropdown = ttk.Combobox(window, textvariable=blackscreen_var, values=blackscreen_options, state="readonly", width=36)
 blackscreen_dropdown.grid(row=2, column=1, padx=5, pady=5, sticky=tk.W)
 
 # Create the 'Yuzu Folder' selection button
 yuzu_folder_path = tk.StringVar(window)
-yuzu_folder_label = tk.Label(window, text="Yuzu Folder:", fg="red")
+yuzu_folder_label = tk.Label(window, text="Yuzu Folder:")
 yuzu_folder_label.grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
-yuzu_folder_button = tk.Button(window, text="Select Folder", command=open_folder_dialog, fg="red")
-yuzu_folder_button.grid(row=3, column=2, padx=5, pady=5, sticky=tk.W)
+yuzu_folder_button = tk.Button(window, text="Select Folder", command=open_folder_dialog)
+yuzu_folder_button.grid(row=3, column=2, padx=18, pady=5, sticky=tk.W)
 
 # Autofill Yuzu folder path
 appdata_path = get_yuzu_folder_from_appdata()
 if appdata_path:
     yuzu_folder_path.set(appdata_path)
-    yuzu_folder_label.config(fg="orange")
+    yuzu_folder_label.config(fg="#FFEE00", bg="#4D4D4E")
     yuzu_folder_path_value = tk.StringVar(window, value=appdata_path)  # Define yuzu_folder_path_value
-    yuzu_folder_entry = tk.Entry(window, textvariable=yuzu_folder_path_value, width=30)
+    yuzu_folder_entry = tk.Entry(window, textvariable=yuzu_folder_path_value, width=38, fg="white", bg="#4D4D4E")
     yuzu_folder_entry.grid(row=3, column=1, padx=5, pady=5, sticky=tk.W)
-    yuzu_folder_button.config(fg="orange")
+    yuzu_folder_button.config(fg="#FFEE00", cursor="hand2", bg="#4D4D4E")
 
 # Create the 'Generate' button
-generate_button = tk.Button(window, text="Generate!", command=generate_config)
-generate_button.grid(row=5, column=0, columnspan=3, padx=5, pady=10)
+generate_button = tk.Button(window, text="Generate!",fg="white", cursor="hand2", bg="#4D4D4E", command=generate_config)
+generate_button.grid(row=5, column=0, columnspan=3, padx=5, pady=10, sticky="ew", rowspan=1)
 
 def update_folder_state_label():
     folder_path = yuzu_folder_path.get()
@@ -403,16 +418,16 @@ def update_folder_state_label():
         yuzu_folder_button.config(fg="red")
 
     else:
-        folder_state_label.config(text="Folder selected by user!", fg="green")
-        yuzu_folder_label.config(fg="green")
-        yuzu_folder_button.config(fg="green")
+        folder_state_label.config(text="Folder selected by user!", fg="#00FF00")
+        yuzu_folder_label.config(fg="#00FF00")
+        yuzu_folder_button.config(fg="#00FF00")
 
 # Add the folder state label
-folder_state_label = tk.Label(window, text="Warning: Folder path autofilled! \n Portable Yuzu / Linux users \n please check the directory selected \n and adjust it by clicking 'Select Folder' above", fg="orange")
-folder_state_label.grid(row=6, column=0, columnspan=3, padx=5, pady=5)
+folder_state_label = tk.Label(window, text="Warning: Folder path autofilled! \n Portable Yuzu / Linux users \n please check the directory selected \n and adjust it by clicking 'Select Folder' above", fg="#FFEE00", bg="#4D4D4E",)
+folder_state_label.grid(row=7, column=0, columnspan=3, padx=5, pady=5)
 
 # Create the GitHub link label
-github_link_label = tk.Button(window, text="Visit our website!", fg="blue", cursor="hand2")
+github_link_label = tk.Button(window, text="Visit our website!", fg="cyan", cursor="hand2", bg="#4D4D4E")
 github_link_label.grid(row=0, column=2, padx=10, pady=10, sticky=tk.E)
 github_link_label.bind("<Button-1>", lambda e: open_github_project())
 
