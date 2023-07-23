@@ -10,11 +10,18 @@ import webbrowser
 #import pyglet
 #import wmi
 
-def get_yuzu_folder_from_appdata():
-    roaming_folder_path = Path(os.getenv('APPDATA'))
-    yuzu_folder_path = roaming_folder_path / 'yuzu'
-    if yuzu_folder_path.exists():
-        return str(yuzu_folder_path)
+def get_yuzu_folder():
+    if os.name == 'nt':  # Check if the operating system is Windows
+        roaming_folder_path = os.getenv('APPDATA')
+        yuzu_folder_path = os.path.join(roaming_folder_path, 'yuzu')
+        if os.path.exists(yuzu_folder_path):
+            return yuzu_folder_path
+    else:  # Assume Linux
+        home_folder = os.path.expanduser("~")
+        yuzu_folder_path = os.path.join(home_folder, '.local', 'share', 'yuzu')
+        if os.path.exists(yuzu_folder_path):
+            return yuzu_folder_path
+
     return None
 
 def open_folder_dialog():
@@ -108,7 +115,7 @@ resolution_shadow_mapping = {
     '3840x2160': 4096,
     '5120x2880': 4096,
     '5760x3240': 4096,
-    '7680x4320': 8192
+    '7680x4320': 4096
 }
 
 def generate_config():
@@ -119,7 +126,7 @@ def generate_config():
     yuzu_folder_path_value = yuzu_folder_path.get()
 
     if not yuzu_folder_path_value:
-        appdata_path = get_yuzu_folder_from_appdata()
+        appdata_path = get_yuzu_folder()
         if appdata_path:
             yuzu_folder_path.set(appdata_path)
             yuzu_folder_label.config(fg="green")
@@ -280,6 +287,10 @@ sound_index\\use_global=true
 
     # Save the additional config content to 0100F2C0115B6000.ini
     config_file_path = os.path.join(yuzu_folder_path_value, 'config', 'custom', '0100F2C0115B6000.ini')
+
+    if not os.path.exists(config_file_path):
+        os.makedirs(config_file_path, exists = False)
+
     with open(config_file_path, 'w') as f:
         f.write(config_content)
 
@@ -396,7 +407,7 @@ yuzu_folder_button = tk.Button(window, text="Select Folder", command=open_folder
 yuzu_folder_button.grid(row=3, column=2, padx=18, pady=5, sticky=tk.W)
 
 # Autofill Yuzu folder path
-appdata_path = get_yuzu_folder_from_appdata()
+appdata_path = get_yuzu_folder()
 if appdata_path:
     yuzu_folder_path.set(appdata_path)
     yuzu_folder_label.config(fg="#FFEE00", bg="#4D4D4E")
