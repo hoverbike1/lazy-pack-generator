@@ -184,13 +184,19 @@ def generate_config():
     ]
 
     # Create the base 0100F2C0115B6000.ini content with the specified settings
-    config_content = f"""[Core]
+    config_content = f"""[Controls]
+vibration_enabled\\use_global=true
+enable_accurate_vibrations\\use_global=true
+motion_enabled\\use_global=true
+
+[Core]
 use_multi_core\\use_global=true
-use_unsafe_extended_memory_layout\\use_global=true
+memory_layout_mode\\use_global=false
+speed_limit\\use_global=true
+memory_layout_mode\\default=true
+memory_layout_mode=0
 
 [Cpu]
-cpu_accuracy_first_time\\default=false
-cpu_accuracy_first_time=false
 cpu_accuracy\\use_global=false
 cpuopt_unsafe_unfuse_fma\\use_global=true
 cpuopt_unsafe_reduce_fp_error\\use_global=true
@@ -203,64 +209,52 @@ cpu_accuracy=0
 
 [Renderer]
 backend\\use_global=false
-async_presentation\\use_global=false
-force_max_clock\\use_global=true
+shader_backend\\use_global=true
 vulkan_device\\use_global=false
+use_disk_shader_cache\\use_global=false
+use_asynchronous_gpu_emulation\\use_global=false
+accelerate_astc\\use_global=true
+nvdec_emulation\\use_global=true
 fullscreen_mode\\use_global=true
 aspect_ratio\\use_global=true
 resolution_setup\\use_global=false
-scaling_filter\\use_global=false
+scaling_filter\\use_global=true
+anti_aliasing\\use_global=true
 fsr_sharpening_slider\\use_global=false
-anti_aliasing\\use_global=false
-max_anisotropy\\use_global=false
-speed_limit\\use_global=false
-use_disk_shader_cache\\use_global=false
+bg_red\\use_global=true
+bg_green\\use_global=true
+bg_blue\\use_global=true
 gpu_accuracy\\use_global=false
-use_asynchronous_gpu_emulation\\use_global=false
-nvdec_emulation\\use_global=true
-accelerate_astc\\use_global=false
-async_astc\\use_global=false
+max_anisotropy\\use_global=false
 astc_recompression\\use_global=true
+async_presentation\\use_global=false
+force_max_clock\\use_global=true
 use_reactive_flushing\\use_global=false
-shader_backend\\use_global=true
 use_asynchronous_shaders\\use_global=false
 use_fast_gpu_time\\use_global=false
 use_vulkan_driver_pipeline_cache\\use_global=false
 enable_compute_pipelines\\use_global=true
 use_video_framerate\\use_global=false
 barrier_feedback_loops\\use_global=false
-bg_red\\use_global=true
-bg_green\\use_global=true
-bg_blue\\use_global=true
 backend\\default=true
 backend=1
-async_presentation\\default=true
-async_presentation=false
 vulkan_device\\default=true
 vulkan_device=0
-resolution_setup\\default=true
-resolution_setup=2
-scaling_filter\\default=true
-scaling_filter=1
-fsr_sharpening_slider\\default=false
-fsr_sharpening_slider=200
-anti_aliasing\\default=false
-anti_aliasing=1
-max_anisotropy\\default=false
-max_anisotropy=5
-speed_limit\\default=true
-speed_limit=100
 use_disk_shader_cache\\default=true
 use_disk_shader_cache=true
-gpu_accuracy\\default=false
-gpu_accuracy=0
 use_asynchronous_gpu_emulation\\default=true
 use_asynchronous_gpu_emulation=true
-accelerate_astc\\default=true
-accelerate_astc=true
-async_astc\\default=true
-async_astc=false
-use_reactive_flushing\default=true
+resolution_setup\\default=true
+resolution_setup=2
+fsr_sharpening_slider\\default=false
+fsr_sharpening_slider=200
+gpu_accuracy\\default=false
+gpu_accuracy=0
+max_anisotropy\\default=false
+max_anisotropy=5
+async_presentation\\default=true
+async_presentation=false
+use_reactive_flushing\\default=true
 use_reactive_flushing=true
 use_asynchronous_shaders\\default=true
 use_asynchronous_shaders=false
@@ -280,16 +274,17 @@ volume\\use_global=true
 language_index\\use_global=true
 region_index\\use_global=true
 time_zone_index\\use_global=true
+custom_rtc_enabled\\use_global=true
+custom_rtc\\use_global=true
 rng_seed_enabled\\use_global=true
 rng_seed\\use_global=true
+use_docked_mode\\use_global=true
 sound_index\\use_global=true
 """
 
+
     # Save the additional config content to 0100F2C0115B6000.ini
     config_file_path = os.path.join(yuzu_folder_path_value, 'config', 'custom', '0100F2C0115B6000.ini')
-
-    if not os.path.exists(config_file_path):
-        os.makedirs(config_file_path, exists = False)
 
     with open(config_file_path, 'w') as f:
         f.write(config_content)
@@ -301,21 +296,25 @@ sound_index\\use_global=true
             with open(ini_file_path, 'r') as f:
                 lines = f.readlines()
 
-
-
-
             with open(ini_file_path, 'w') as f:
                 for line in lines:
-                    if line.startswith('use_unsafe_extended_memory_layout'):
+                    if line.startswith(r'memory_layout_mode\use_global='):
+                        f.write('memory_layout_mode\\use_global=false\n')
+                    elif line.startswith(r'memory_layout_mode\default='):
                         if resolution in ['960x540', '1280x720', '1366x768', '1600x900', '1920x1080']:
-                            f.write('use_unsafe_extended_memory_layout\\use_global=true\n')
+                            f.write('memory_layout_mode\\default=true\n')
                         else:
-                            f.write('use_unsafe_extended_memory_layout\\use_global=false\n')
-                            f.write('use_unsafe_extended_memory_layout\\default=false\n')
-                            f.write('use_unsafe_extended_memory_layout=true\n')
-                    elif line.startswith('resolution_setup'):
+                            f.write('memory_layout_mode\\default=false\n')
+                    elif line.startswith(r'memory_layout_mode='):
+                        if resolution in ['960x540', '1280x720', '1366x768', '1600x900', '1920x1080']:
+                            f.write('memory_layout_mode=0\n')
+                        else:
+                            f.write('memory_layout_mode=2\n')
+                    elif line.startswith(r'resolution_setup\use_global='):
                         f.write('resolution_setup\\use_global=false\n')
+                    elif line.startswith(r'resolution_setup\default='):
                         f.write('resolution_setup\\default=true\n')
+                    elif line.startswith(r'resolution_setup='):
                         f.write('resolution_setup=2\n')
                     else:
                         f.write(line)
